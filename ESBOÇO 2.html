@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafyMed — Controle de Pagamentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface2: #f1f0ec;
+    --border: #e2e0db;
+    --border2: #d0cec8;
+    --text: #1a1916;
+    --text2: #6b6860;
+    --text3: #a09d97;
+    --accent: #1a1916;
+    --green-bg: #e8f5e9;
+    --green-text: #2e7d32;
+    --amber-bg: #fff8e1;
+    --amber-text: #e65100;
+    --blue-bg: #e3f2fd;
+    --blue-text: #1565c0;
+    --red-bg: #fce4ec;
+    --red-text: #c62828;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* LOGIN */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    padding: 2rem;
+  }
+  .login-logo {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+  .login-title {
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .login-sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 28px;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    width: min(380px, 100%);
+  }
+
+  /* APP */
+  #app-screen { display: none; min-height: 100vh; }
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar-brand {
+    display: flex;
+    flex-direction: column;
+    margin-right: 32px;
+  }
+  .topbar-brand-small { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); }
+  .topbar-brand-name { font-size: 15px; font-weight: 500; line-height: 1.1; }
+  .nav-tabs { display: flex; gap: 0; flex: 1; }
+  .nav-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0 16px;
+    height: 56px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
+  .topbar-username { font-size: 12px; color: var(--text2); }
+
+  .main-content { max-width: 860px; margin: 0 auto; padding: 32px 24px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 14px;
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .metric-card {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+  .metric-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .metric-value { font-size: 20px; font-weight: 500; }
+
+  /* BADGES */
+  .badge {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 99px;
+    font-weight: 500;
+    display: inline-block;
+  }
+  .badge-pago { background: var(--green-bg); color: var(--green-text); }
+  .badge-pendente { background: var(--amber-bg); color: var(--amber-text); }
+  .badge-hospital { background: var(--blue-bg); color: var(--blue-text); }
+  .badge-direto { background: var(--surface2); color: var(--text2); }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: none;
+    transition: opacity .15s, transform .1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--text); color: #fff; }
+  .btn-primary:hover { opacity: .85; }
+  .btn-secondary { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+  .btn-secondary:hover { background: var(--surface2); }
+  .btn-success { background: var(--green-bg); color: var(--green-text); border: 1px solid #c8e6c9; }
+  .btn-success:hover { background: #d7f0d8; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-icon { padding: 6px 10px; }
+
+  /* INPUTS */
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+  .form-input, .form-select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface2);
+    transition: border-color .15s;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--text); background: var(--surface); }
+  .form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* LANCAMENTO ROW */
+  .lanc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .lanc-info { flex: 1; min-width: 160px; }
+  .lanc-name { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
+  .lanc-sub { font-size: 12px; color: var(--text2); }
+  .lanc-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .lanc-values { text-align: right; min-width: 160px; }
+  .lanc-bruto { font-size: 12px; color: var(--text2); }
+  .lanc-desc { font-size: 12px; color: var(--text2); }
+  .lanc-liquido { font-size: 17px; font-weight: 500; margin-top: 4px; }
+  .lanc-tipo { font-size: 11px; color: var(--text3); }
+  .lanc-actions { display: flex; align-items: center; gap: 8px; }
+
+  /* AVATAR */
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--blue-bg); color: var(--blue-text);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500; flex-shrink: 0;
+  }
+
+  /* FILTERS */
+  .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-end; }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; }
+  .filter-select { padding: 7px 10px; font-size: 13px; min-width: 160px; width: auto; }
+
+  /* CÁLCULO PREVIEW */
+  .calc-preview {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .calc-preview p { margin: 0; color: var(--text2); line-height: 1.8; }
+  .calc-preview .calc-total { font-size: 15px; font-weight: 500; color: var(--text); margin-top: 4px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: min(520px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-title { font-size: 16px; font-weight: 500; margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .section-title { font-size: 18px; font-weight: 500; flex: 1; }
+  .section-sub { font-size: 15px; font-weight: 500; margin-bottom: 14px; margin-top: 4px; }
+
+  /* ERROR */
+  .error-msg { font-size: 13px; color: var(--red-text); margin-bottom: 8px; }
+
+  /* EMPTY */
+  .empty { font-size: 14px; color: var(--text2); padding: 20px 0; }
+
+  /* SEPARATOR */
+  .sep { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+
+  /* COMPROVANTE */
+  .comprovante-link { font-size: 11px; color: var(--blue-text); display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; }
+
+  /* CHECKBOX */
+  .check-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; margin-bottom: 8px; }
+  .check-label input { width: 15px; height: 15px; cursor: pointer; }
+
+  /* CALENDÁRIO */
+  .cal-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+  .cal-nav { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .cal-nav-title { font-size: 16px; font-weight: 500; flex: 1; text-align: center; }
+  .cal-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--border); }
+  .cal-header-day { text-align: center; font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; padding: 8px 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .cal-cell { min-height: 90px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 6px 6px 4px; cursor: pointer; transition: background .12s; position: relative; overflow: hidden; }
+  .cal-cell:nth-child(7n) { border-right: none; }
+  .cal-cell:hover { background: var(--surface2); }
+  .cal-cell-empty { background: var(--bg); cursor: default; opacity: .45; }
+  .cal-cell-empty:hover { background: var(--bg); }
+  .cal-cell-hoje { background: #eef2ff; }
+  .cal-cell-selected { background: #e8f0fe !important; outline: 2px solid #4285f4; outline-offset: -2px; }
+  .cal-dia-num { font-size: 12px; font-weight: 500; color: var(--text2); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 3px; }
+  .cal-dia-hoje-circle { background: #1a73e8; color: #fff; font-weight: 600; }
+  .cal-evento { font-size: 11px; font-weight: 500; border-radius: 3px; padding: 2px 5px; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; transition: opacity .1s; display: block; }
+  .cal-evento:hover { opacity: .82; }
+  .cal-ev-green { background: var(--green-bg); color: var(--green-text); }
+  .cal-ev-amber { background: var(--amber-bg); color: var(--amber-text); }
+  .cal-ev-blue  { background: var(--blue-bg);  color: var(--blue-text); }
+  .cal-mais { font-size: 11px; color: var(--text2); cursor: pointer; padding: 1px 5px; }
+  .cal-mais:hover { text-decoration: underline; }
+  .cal-legenda { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 16px; font-size: 12px; color: var(--text2); }
+  .cal-legenda-item { display: flex; align-items: center; gap: 6px; }
+  .cal-ev-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
+  @media (max-width: 600px) {
+    .cal-cell { min-height: 56px; padding: 3px 2px; }
+    .cal-evento { font-size: 10px; padding: 1px 3px; }
+    .cal-dia-num { font-size: 11px; width: 20px; height: 20px; }
+    .cal-header-day { font-size: 9px; }
+  }
+
+  /* BOTÕES PAINEL NAV */
+  .btn-painel-nav {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color .15s, box-shadow .15s, transform .1s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .btn-painel-nav:hover {
+    border-color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    transform: translateY(-1px);
+  }
+  .btn-painel-nav:active { transform: scale(.98); }
+  .btn-painel-nav-amber { border-left: 3px solid var(--amber-text); }
+  .btn-painel-icon { font-size: 22px; margin-bottom: 2px; }
+  .btn-painel-label { font-size: 14px; font-weight: 500; color: var(--text); }
+  .btn-painel-hint { font-size: 12px; color: var(--text2); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .topbar { padding: 0 16px; }
+    .main-content { padding: 20px 14px; }
+    .topbar-brand-name { font-size: 13px; }
+    .lanc-values { min-width: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <p class="login-logo">Controle de Pagamentos</p>
+  <h1 class="login-title">SafyMed</h1>
+  <p class="login-sub">Digite seu token de acesso para entrar</p>
+  <div class="login-card">
+    <div class="form-group">
+      <label class="form-label">Token de acesso</label>
+      <input class="form-input" id="token-input" type="text" placeholder="Ex: ADM-2024" style="letter-spacing:2px; text-transform:uppercase" autocomplete="off">
+      <p class="form-hint">Pressione Enter para entrar</p>
+    </div>
+    <p class="error-msg" id="login-error" style="display:none"></p>
+    <button class="btn btn-primary" style="width:100%; padding:10px; font-size:15px; justify-content:center" onclick="doLogin()">Entrar</button>
+    <p style="font-size:11px; color:var(--text3); margin-top:16px; text-align:center">
+      ADM-2024 · DRA-2024
+    </p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-brand-small">SafyMed</span>
+      <span class="topbar-brand-name">Pagamentos</span>
+    </div>
+    <div class="nav-tabs" id="nav-tabs"></div>
+    <div class="topbar-user">
+      <span class="topbar-username" id="topbar-username"></span>
+      <button class="btn btn-secondary btn-sm" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+  <div class="main-content" id="main-content"></div>
+</div>
+
+<!-- MODAL LANÇAMENTO -->
+<div class="modal-overlay" id="modal-lanc">
+  <div class="modal-box">
+    <h2 class="modal-title" id="modal-lanc-title">Novo lançamento</h2>
+    <div class="form-group">
+      <label class="form-label">Grupo / Hospital *</label>
+      <select class="form-input form-select" id="form-grupo" onchange="onGrupoChange()">
+        <option value="">Selecione...</option>
+      </select>
+    </div>
+    <div class="form-group" id="form-socio-group" style="display:none">
+      <label class="form-label">Sócio médico *</label>
+      <select class="form-input form-select" id="form-socio">
+        <option value="">Selecione...</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mês de competência *</label>
+      <select class="form-input form-select" id="form-mes"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Valor bruto (R$) *</label>
+      <input class="form-input" type="number" id="form-bruto" step="0.01" min="0" placeholder="0,00" oninput="updateCalcPreview()">
+    </div>
+    <div class="calc-preview" id="calc-preview" style="display:none"></div>
+    <div class="form-group" style="margin-top:14px">
+      <label class="form-label">Observação</label>
+      <input class="form-input" type="text" id="form-obs" placeholder="Ex: subs NF 440, parcela 2/3...">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-lanc')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarLancamento()" id="btn-salvar-lanc">Lançar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR PAGAMENTO -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal-box">
+    <h2 class="modal-title">Confirmar pagamento</h2>
+    <div class="calc-preview" id="confirm-info" style="margin-bottom:20px"></div>
+    <div class="form-group">
+      <label class="form-label">Data de recebimento do hospital</label>
+      <input class="form-input" type="date" id="confirm-data-recebimento">
+      <p class="form-hint">Data em que o hospital pagou / creditou o valor líquido</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Anexar comprovante (PDF ou imagem)</label>
+      <input type="file" id="confirm-file" accept=".pdf,.png,.jpg,.jpeg" style="font-size:13px">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-confirm')">Cancelar</button>
+      <button class="btn btn-success" onclick="confirmarPagamento()">✓ Marcar como pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO SÓCIO -->
+<div class="modal-overlay" id="modal-socio">
+  <div class="modal-box">
+    <h2 class="modal-title">Novo sócio</h2>
+    <div class="form-group">
+      <label class="form-label">Nome completo *</label>
+      <input class="form-input" type="text" id="form-socio-nome" placeholder="Dr. Nome Sobrenome">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Grupos / Hospitais onde atua</label>
+      <div id="socio-grupos-check"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-socio')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarSocio()">Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIG DESCONTO -->
+<div class="modal-overlay" id="modal-config">
+  <div class="modal-box">
+    <h2 class="modal-title">Alterar percentual de desconto</h2>
+    <p style="font-size:13px; color:var(--text2); margin-bottom:16px">Aplicado a todos os sócios dos grupos hospitalares.</p>
+    <div class="form-group">
+      <label class="form-label">Novo percentual (%)</label>
+      <input class="form-input" type="number" id="form-desc-pct" step="0.01" min="0" max="100" style="max-width:200px">
+    </div>
+    <div class="calc-preview" id="config-preview"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-config')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarDesconto()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOKENS = {
+  'ADM-2024': { role: 'admin', name: 'Administradora' },
+  'DRA-2024': { role: 'dra', name: 'Dra. Responsável' }
+};
+
+const GRUPOS = [
+  { id: 'blanc',        nome: 'Hospital Blanc',         tipo: 'hospital' },
+  { id: 'santa_paula',  nome: 'Hospital Santa Paula',   tipo: 'hospital' },
+  { id: 'safymed',      nome: 'Safymed',                tipo: 'hospital' },
+  { id: 'funcionarios', nome: 'Pagamento Funcionários', tipo: 'direto' },
+  { id: 'contabilidade',nome: 'Pagamento Contabilidade',tipo: 'direto' },
+  { id: 'contas',       nome: 'Contas Gerais e Tributos',tipo:'direto' }
+];
+
+const MESES = ['2026-03','2026-04','2026-05','2026-06'];
+
+let state = {
+  user: null,
+  tela: 'dashboard',
+  desconto: 13.5,
+  socios: [
+    { id: 1, nome: 'Dr. Rondinele', grupos: ['safymed','blanc'] },
+    { id: 2, nome: 'Dr. Carlos',    grupos: ['santa_paula','blanc'] },
+    { id: 3, nome: 'Dra. Ana Lima', grupos: ['safymed'] }
+  ],
+  lancamentos: [
+    { id:1, socioId:1, grupoId:'safymed',      mes:'2026-04', valorBruto:79656.20, status:'pago',     comprovante:null, dataPagamento:'2026-04-21', dataRecebimento:'2026-04-15', obs:'' },
+    { id:2, socioId:1, grupoId:'safymed',      mes:'2026-05', valorBruto:79241.91, status:'pendente', comprovante:null, dataPagamento:null,         dataRecebimento:null, obs:'' },
+    { id:3, socioId:2, grupoId:'blanc',        mes:'2026-05', valorBruto:32000,    status:'pendente', comprovante:null, dataPagamento:null,         dataRecebimento:null, obs:'' },
+    { id:4, socioId:3, grupoId:'safymed',      mes:'2026-05', valorBruto:18500,    status:'pendente', comprovante:null, dataPagamento:null,         dataRecebimento:null, obs:'' },
+    { id:5, socioId:null,grupoId:'funcionarios',mes:'2026-05',valorBruto:12000,    status:'pendente', comprovante:null, dataPagamento:null,         dataRecebimento:null, obs:'Folha mai/26' },
+    { id:6, socioId:null,grupoId:'contabilidade',mes:'2026-05',valorBruto:3500,   status:'pago',     comprovante:'comprovante_mai.pdf', dataPagamento:'2026-05-02', dataRecebimento:'2026-04-28', obs:'Honorários mensais' }
+  ],
+  filtroGrupo: 'todos',
+  filtroMes: 'todos',
+  filtroStatus: 'todos',
+  filtroRelatorioMes: 'todos',
+  filtroRelatorioAno: 'todos',
+  editLancId: null,
+  confirmLancId: null
+};
+
+// UTILS
+function fmtBRL(v) {
+  return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+function fmtMes(m) {
+  if (!m) return '';
+  const [y, mo] = m.split('-');
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return meses[parseInt(mo)-1] + '/' + y;
+}
+function grupoNome(id) { return (GRUPOS.find(g => g.id === id) || {}).nome || id; }
+function socioNome(id) { return (state.socios.find(s => s.id === id) || {}).nome || '—'; }
+function isHospital(id) { return (GRUPOS.find(g => g.id === id) || {}).tipo === 'hospital'; }
+function calcLiquido(bruto, grupoId) {
+  return isHospital(grupoId) ? bruto * (1 - state.desconto / 100) : bruto;
+}
+function initials(nome) {
+  return nome.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase();
+}
+function hoje() { return new Date().toISOString().split('T')[0]; }
+
+// LOGIN
+document.getElementById('token-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogin() {
+  const val = document.getElementById('token-input').value.trim().toUpperCase();
+  const u = TOKENS[val];
+  const errEl = document.getElementById('login-error');
+  if (u) {
+    state.user = u;
+    errEl.style.display = 'none';
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('topbar-username').textContent = u.name;
+    buildNav();
+    render();
+  } else {
+    errEl.textContent = 'Token inválido. Tente novamente.';
+    errEl.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  state.user = null;
+  state.tela = 'dashboard';
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('token-input').value = '';
+}
+
+// NAV
+function buildNav() {
+  const tabs = [
+    { id: 'dashboard',   label: 'Painel' },
+    { id: 'lancamentos', label: 'Lançamentos' },
+    { id: 'relatorio',   label: 'Relatório' },
+    ...(state.user.role === 'admin' ? [
+      { id: 'socios', label: 'Sócios' },
+      { id: 'config', label: 'Configurações' }
+    ] : [])
+  ];
+  document.getElementById('nav-tabs').innerHTML = tabs.map(t =>
+    `<button class="nav-tab ${state.tela === t.id ? 'active' : ''}" onclick="navTo('${t.id}')">${t.label}</button>`
+  ).join('');
+}
+
+function navTo(tela) {
+  state.tela = tela;
+  state.filtroGrupo = 'todos';
+  state.filtroMes = 'todos';
+  state.filtroStatus = 'todos';
+  buildNav();
+  render();
+}
+
+// RENDER
+function render() {
+  const el = document.getElementById('main-content');
+  if (state.tela === 'dashboard') el.innerHTML = renderDashboard();
+  else if (state.tela === 'lancamentos') el.innerHTML = renderLancamentos();
+  else if (state.tela === 'relatorio') el.innerHTML = renderRelatorio();
+  else if (state.tela === 'socios') el.innerHTML = renderSocios();
+  else if (state.tela === 'config') el.innerHTML = renderConfig();
+}
+
+// DASHBOARD
+function renderDashboard() {
+  const totalPendente = state.lancamentos.filter(l => l.status === 'pendente').length;
+  const valorPendente = state.lancamentos.filter(l => l.status === 'pendente').reduce((s,l) => s + calcLiquido(l.valorBruto, l.grupoId), 0);
+  const proximoMes = MESES[0]; // mês mais próximo com lançamentos pendentes
+  const pendentesHoje = state.lancamentos.filter(l => l.status === 'pendente');
+
+  const newBtn = state.user.role === 'admin'
+    ? `<button class="btn btn-primary" onclick="openModalLanc(null)">+ Novo lançamento</button>` : '';
+
+  return `
+    <div class="section-header">
+      <h2 class="section-title">Painel</h2>
+      ${newBtn}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:28px">
+      <button class="btn-painel-nav" onclick="navTo('relatorio')">
+        <div class="btn-painel-icon">📊</div>
+        <div class="btn-painel-label">Acessar Calendário de Pagamentos</div>
+        <div class="btn-painel-hint">Visão mensal e anual por competência</div>
+      </button>
+      <button class="btn-painel-nav btn-painel-nav-amber" onclick="navPendencias()">
+        <div class="btn-painel-icon">⏳</div>
+        <div class="btn-painel-label">Ver Pendências</div>
+        <div class="btn-painel-hint">${totalPendente} pagamento${totalPendente !== 1 ? 's' : ''} aguardando · ${fmtBRL(valorPendente)}</div>
+      </button>
+    </div>
+
+    <h3 class="section-sub" style="margin-top:8px">Resumo geral</h3>
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">Total bruto</div>
+        <div class="metric-value">${fmtBRL(state.lancamentos.reduce((s,l) => s + l.valorBruto, 0))}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Pendente (líquido)</div>
+        <div class="metric-value" style="color:var(--amber-text)">${fmtBRL(valorPendente)}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total pago</div>
+        <div class="metric-value" style="color:var(--green-text)">${fmtBRL(state.lancamentos.filter(l=>l.status==='pago').reduce((s,l)=>s+calcLiquido(l.valorBruto,l.grupoId),0))}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Desconto vigente</div>
+        <div class="metric-value" style="color:var(--text2)">${state.desconto}%</div>
+      </div>
+    </div>`;
+}
+
+function navPendencias() {
+  state.tela = 'lancamentos';
+  state.filtroGrupo = 'todos';
+  state.filtroMes = 'todos';
+  state.filtroStatus = 'pendente';
+  buildNav();
+  render();
+}
+
+// RELATÓRIO — Calendário visual estilo Google Agenda
+function renderRelatorio() {
+  const MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  // Estado de navegação do calendário: mês/ano visível
+  if (!state.calAno || !state.calMes) {
+    const hoje = new Date();
+    state.calAno = hoje.getFullYear();
+    state.calMes = hoje.getMonth(); // 0-indexed
+  }
+
+  const ano = state.calAno;
+  const mes = state.calMes; // 0-indexed
+
+  // Montar mapa de eventos por data
+  // Cada lançamento pode aparecer em até 2 datas: dataRecebimento (entrada do hospital) e dataPagamento (saída)
+  // Para lançamentos pendentes, usamos o último dia do mês de competência como data esperada
+  const eventosPorDia = {};
+
+  function addEvento(dataStr, evento) {
+    if (!dataStr) return;
+    if (!eventosPorDia[dataStr]) eventosPorDia[dataStr] = [];
+    eventosPorDia[dataStr].push(evento);
+  }
+
+  state.lancamentos.forEach(l => {
+    const liq = calcLiquido(l.valorBruto, l.grupoId);
+    const hosp = isHospital(l.grupoId);
+    const nome = hosp && l.socioId ? socioNome(l.socioId) : (l.obs || grupoNome(l.grupoId));
+
+    if (l.dataRecebimento) {
+      addEvento(l.dataRecebimento, {
+        id: l.id, tipo: 'recebimento', nome, grupo: grupoNome(l.grupoId),
+        valor: liq, status: l.status, cor: 'blue'
+      });
+    }
+    if (l.dataPagamento) {
+      addEvento(l.dataPagamento, {
+        id: l.id, tipo: 'pagamento', nome, grupo: grupoNome(l.grupoId),
+        valor: liq, status: 'pago', cor: 'green'
+      });
+    }
+    if (l.status === 'pendente') {
+      // Estimar vencimento: último dia do mês de competência
+      const [y, m2] = l.mes.split('-').map(Number);
+      const ultimoDia = new Date(y, m2, 0).getDate();
+      const dataEstimada = `${y}-${String(m2).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
+      addEvento(dataEstimada, {
+        id: l.id, tipo: 'vencimento', nome, grupo: grupoNome(l.grupoId),
+        valor: liq, status: 'pendente', cor: 'amber'
+      });
+    }
+  });
+
+  // Construir grade do calendário
+  const primeiroDia = new Date(ano, mes, 1).getDay(); // 0=Dom
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+  const hoje2 = new Date();
+  const isHoje = (d) => d === hoje2.getDate() && mes === hoje2.getMonth() && ano === hoje2.getFullYear();
+
+  // Totais do mês visível
+  const mesStr = `${ano}-${String(mes+1).padStart(2,'0')}`;
+  const lancMes = state.lancamentos.filter(l => l.mes === mesStr);
+  const totalPagoMes = lancMes.filter(l=>l.status==='pago').reduce((s,l)=>s+calcLiquido(l.valorBruto,l.grupoId),0);
+  const totalPendMes = lancMes.filter(l=>l.status==='pendente').reduce((s,l)=>s+calcLiquido(l.valorBruto,l.grupoId),0);
+
+  // Cabeçalho dias da semana
+  let headerCols = DIAS_SEMANA.map(d => `<div class="cal-header-day">${d}</div>`).join('');
+
+  // Células
+  let cells = '';
+  // Células em branco antes do primeiro dia
+  for (let i = 0; i < primeiroDia; i++) cells += `<div class="cal-cell cal-cell-empty"></div>`;
+
+  for (let d = 1; d <= diasNoMes; d++) {
+    const dataStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const eventos = eventosPorDia[dataStr] || [];
+    const isHojeClass = isHoje(d) ? 'cal-cell-hoje' : '';
+    const haEventos = eventos.length > 0;
+
+    let eventosHTML = '';
+    const MAX_SHOW = 2;
+    eventos.slice(0, MAX_SHOW).forEach(ev => {
+      const corClass = `cal-ev-${ev.cor}`;
+      const label = ev.nome.split(' ')[0] + (ev.tipo === 'recebimento' ? ' 🏥' : ev.tipo === 'vencimento' ? ' ⏳' : ' ✓');
+      eventosHTML += `<div class="cal-evento ${corClass}" onclick="abrirDiaDetalhe('${dataStr}')" title="${ev.nome} — ${grupoNome(ev.grupo)}">${label}</div>`;
+    });
+    if (eventos.length > MAX_SHOW) {
+      eventosHTML += `<div class="cal-mais" onclick="abrirDiaDetalhe('${dataStr}')">+${eventos.length - MAX_SHOW} mais</div>`;
+    }
+
+    cells += `
+      <div class="cal-cell ${isHojeClass} ${haEventos ? 'cal-cell-tem-evento' : ''}" onclick="abrirDiaDetalhe('${dataStr}')">
+        <div class="cal-dia-num ${isHoje(d) ? 'cal-dia-hoje-circle' : ''}">${d}</div>
+        ${eventosHTML}
+      </div>`;
+  }
+
+  // Completar última semana
+  const totalCells = primeiroDia + diasNoMes;
+  const resto = totalCells % 7;
+  if (resto !== 0) for (let i = 0; i < 7 - resto; i++) cells += `<div class="cal-cell cal-cell-empty"></div>`;
+
+  return `
+    <div class="section-header"><h2 class="section-title">Calendário de Pagamentos</h2></div>
+
+    <div class="metric-grid" style="margin-bottom:20px">
+      <div class="metric-card">
+        <div class="metric-label">Pago em ${MESES_NOMES[mes]}</div>
+        <div class="metric-value" style="color:var(--green-text)">${fmtBRL(totalPagoMes)}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Pendente em ${MESES_NOMES[mes]}</div>
+        <div class="metric-value" style="color:var(--amber-text)">${fmtBRL(totalPendMes)}</div>
+      </div>
+    </div>
+
+    <div class="cal-wrap">
+      <div class="cal-nav">
+        <button class="btn btn-secondary btn-sm" onclick="calNavegar(-1)">&#8592;</button>
+        <span class="cal-nav-title">${MESES_NOMES[mes]} ${ano}</span>
+        <button class="btn btn-secondary btn-sm" onclick="calNavegar(1)">&#8594;</button>
+        <button class="btn btn-secondary btn-sm" style="margin-left:8px" onclick="calHoje()">Hoje</button>
+      </div>
+
+      <div class="cal-grid-header">${headerCols}</div>
+      <div class="cal-grid">${cells}</div>
+    </div>
+
+    <div class="cal-legenda">
+      <span class="cal-legenda-item"><span class="cal-ev-dot cal-ev-blue"></span> Recebimento do hospital</span>
+      <span class="cal-legenda-item"><span class="cal-ev-dot cal-ev-green"></span> Pagamento realizado</span>
+      <span class="cal-legenda-item"><span class="cal-ev-dot cal-ev-amber"></span> Vencimento estimado</span>
+    </div>
+
+    <!-- Painel de detalhe do dia -->
+    <div id="cal-detalhe" style="display:none; margin-top:20px"></div>`;
+}
+
+function calNavegar(dir) {
+  state.calMes += dir;
+  if (state.calMes > 11) { state.calMes = 0; state.calAno++; }
+  if (state.calMes < 0)  { state.calMes = 11; state.calAno--; }
+  render();
+}
+
+function calHoje() {
+  const h = new Date();
+  state.calAno = h.getFullYear();
+  state.calMes = h.getMonth();
+  render();
+}
+
+function abrirDiaDetalhe(dataStr) {
+  // Montar eventos desta data
+  const MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const [ano, mes, dia] = dataStr.split('-').map(Number);
+  const labelData = `${dia} de ${MESES_NOMES[mes-1]} de ${ano}`;
+
+  const eventos = [];
+  state.lancamentos.forEach(l => {
+    const liq = calcLiquido(l.valorBruto, l.grupoId);
+    const hosp = isHospital(l.grupoId);
+    const nome = hosp && l.socioId ? socioNome(l.socioId) : (l.obs || grupoNome(l.grupoId));
+    if (l.dataRecebimento === dataStr) {
+      eventos.push({ tipo: 'recebimento', nome, grupo: grupoNome(l.grupoId), valor: liq, status: l.status, id: l.id, valorBruto: l.valorBruto, hosp });
+    }
+    if (l.dataPagamento === dataStr) {
+      eventos.push({ tipo: 'pagamento', nome, grupo: grupoNome(l.grupoId), valor: liq, status: 'pago', id: l.id, valorBruto: l.valorBruto, hosp });
+    }
+    if (l.status === 'pendente') {
+      const [y, m2] = l.mes.split('-').map(Number);
+      const ultimoDia = new Date(y, m2, 0).getDate();
+      const dataEstimada = `${y}-${String(m2).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
+      if (dataEstimada === dataStr) {
+        eventos.push({ tipo: 'vencimento', nome, grupo: grupoNome(l.grupoId), valor: liq, status: 'pendente', id: l.id, valorBruto: l.valorBruto, hosp });
+      }
+    }
+  });
+
+  const det = document.getElementById('cal-detalhe');
+  if (!eventos.length) { det.style.display = 'none'; return; }
+
+  // Remover seleção anterior
+  document.querySelectorAll('.cal-cell.cal-cell-selected').forEach(el => el.classList.remove('cal-cell-selected'));
+  // Marcar célula selecionada
+  document.querySelectorAll('.cal-cell').forEach(el => {
+    if (el.querySelector('.cal-dia-num') && parseInt(el.querySelector('.cal-dia-num').textContent) === parseInt(dia)) {
+      const mesAno = `${state.calAno}-${String(state.calMes+1).padStart(2,'0')}`;
+      const dataCell = `${mesAno}-${String(dia).padStart(2,'0')}`;
+      if (dataCell === dataStr) el.classList.add('cal-cell-selected');
+    }
+  });
+
+  const tipoLabel = { recebimento: '🏥 Recebimento do hospital', pagamento: '✅ Pagamento realizado', vencimento: '⏳ Vencimento estimado' };
+  const tipoCorClass = { recebimento: 'cal-ev-blue', pagamento: 'cal-ev-green', vencimento: 'cal-ev-amber' };
+
+  const rows = eventos.map(ev => {
+    const confirmarBtn = ev.status === 'pendente' && state.user.role === 'dra'
+      ? `<button class="btn btn-success btn-sm" onclick="openConfirm(${ev.id})">✓ Confirmar</button>` : '';
+    const descInfo = ev.hosp
+      ? `<span style="font-size:12px;color:var(--text2)">Bruto: ${fmtBRL(ev.valorBruto)} · Desconto ${state.desconto}% → Líquido: ${fmtBRL(ev.valor)}</span>`
+      : `<span style="font-size:12px;color:var(--text2)">Valor: ${fmtBRL(ev.valor)}</span>`;
+    return `
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <span class="cal-ev-dot ${tipoCorClass[ev.tipo]}" style="flex-shrink:0"></span>
+            <span style="font-size:12px;font-weight:500;color:var(--text2)">${tipoLabel[ev.tipo]}</span>
+          </div>
+          <div style="font-size:14px;font-weight:500">${ev.nome}</div>
+          <div style="font-size:12px;color:var(--text2)">${ev.grupo}</div>
+          ${descInfo}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          ${confirmarBtn}
+        </div>
+      </div>`;
+  }).join('');
+
+  det.style.display = 'block';
+  det.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <h3 style="font-size:15px;font-weight:500">${labelData}</h3>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('cal-detalhe').style.display='none'">✕</button>
+      </div>
+      ${rows}
+    </div>`;
+  det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// LANÇAMENTOS
+function renderLancamentos() {
+  let filtrados = state.lancamentos.filter(l => {
+    if (state.filtroGrupo !== 'todos' && l.grupoId !== state.filtroGrupo) return false;
+    if (state.filtroMes !== 'todos' && l.mes !== state.filtroMes) return false;
+    if (state.filtroStatus !== 'todos' && l.status !== state.filtroStatus) return false;
+    return true;
+  });
+
+  const grupoOpts = GRUPOS.map(g => `<option value="${g.id}" ${state.filtroGrupo===g.id?'selected':''}>${g.nome}</option>`).join('');
+  const mesOpts   = MESES.map(m => `<option value="${m}" ${state.filtroMes===m?'selected':''}>${fmtMes(m)}</option>`).join('');
+
+  let rows = '';
+  filtrados.forEach(l => {
+    const liq = calcLiquido(l.valorBruto, l.grupoId);
+    const hosp = isHospital(l.grupoId);
+    const nome = hosp && l.socioId ? socioNome(l.socioId) : (l.obs || grupoNome(l.grupoId));
+    const badge = l.status === 'pago'
+      ? `<span class="badge badge-pago">✓ Pago</span>`
+      : `<span class="badge badge-pendente">Pendente</span>`;
+    const comp = l.comprovante
+      ? `<div class="comprovante-link">📎 ${l.comprovante}</div>` : '';
+    const dataPag = l.dataPagamento ? `<div class="lanc-meta">💸 Pago em ${l.dataPagamento}</div>` : '';
+    const dataRec = l.dataRecebimento ? `<div class="lanc-meta">🏥 Recebido do hospital em ${l.dataRecebimento}</div>` : '';
+    const obsLine = l.obs ? ` · ${l.obs}` : '';
+    const descInfo = hosp
+      ? `<div class="lanc-bruto">Bruto: ${fmtBRL(l.valorBruto)}</div>
+         <div class="lanc-desc">Desconto ${state.desconto}%: −${fmtBRL(l.valorBruto * state.desconto / 100)}</div>
+         <div class="lanc-liquido">${fmtBRL(liq)}</div>
+         <div class="lanc-tipo">líquido</div>`
+      : `<div class="lanc-liquido">${fmtBRL(liq)}</div>
+         <div class="lanc-tipo">valor direto</div>`;
+    const editBtn = state.user.role === 'admin' && l.status === 'pendente'
+      ? `<button class="btn btn-secondary btn-icon" title="Editar" onclick="openModalLanc(${l.id})">✏️</button>` : '';
+    const confirmarBtn = state.user.role === 'dra' && l.status === 'pendente'
+      ? `<button class="btn btn-success btn-sm" onclick="openConfirm(${l.id})">✓ Confirmar</button>` : '';
+
+    rows += `
+      <div class="card">
+        <div class="lanc-row">
+          <div class="lanc-info">
+            <div class="lanc-name">${nome} ${badge}</div>
+            <div class="lanc-sub">${grupoNome(l.grupoId)} · ${fmtMes(l.mes)}${obsLine}</div>
+            ${dataRec}${dataPag}${comp}
+          </div>
+          <div class="lanc-values">${descInfo}</div>
+          <div class="lanc-actions">${editBtn}${confirmarBtn}</div>
+        </div>
+      </div>`;
+  });
+
+  const newBtn = state.user.role === 'admin'
+    ? `<button class="btn btn-primary" onclick="openModalLanc(null)">+ Novo</button>` : '';
+
+  return `
+    <div class="section-header">
+      <h2 class="section-title">Lançamentos</h2>
+      ${newBtn}
+    </div>
+    <div class="filters">
+      <div class="filter-group">
+        <label class="filter-label">Grupo</label>
+        <select class="form-select filter-select" onchange="setFiltro('filtroGrupo',this.value)">
+          <option value="todos" ${state.filtroGrupo==='todos'?'selected':''}>Todos os grupos</option>
+          ${grupoOpts}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Mês</label>
+        <select class="form-select filter-select" onchange="setFiltro('filtroMes',this.value)">
+          <option value="todos" ${state.filtroMes==='todos'?'selected':''}>Todos os meses</option>
+          ${mesOpts}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Status</label>
+        <select class="form-select filter-select" onchange="setFiltro('filtroStatus',this.value)">
+          <option value="todos" ${state.filtroStatus==='todos'?'selected':''}>Todos</option>
+          <option value="pendente" ${state.filtroStatus==='pendente'?'selected':''}>Pendente</option>
+          <option value="pago" ${state.filtroStatus==='pago'?'selected':''}>Pago</option>
+        </select>
+      </div>
+    </div>
+    ${rows || '<p class="empty">Nenhum lançamento encontrado com esses filtros.</p>'}`;
+}
+
+// SÓCIOS
+function renderSocios() {
+  let rows = state.socios.map(s => `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="avatar">${initials(s.nome)}</div>
+        <div>
+          <div style="font-weight:500;font-size:14px">${s.nome}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">
+            ${s.grupos.map(g => grupoNome(g)).join(' · ') || 'Sem grupos'}
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  return `
+    <div class="section-header">
+      <h2 class="section-title">Sócios cadastrados</h2>
+      <button class="btn btn-primary" onclick="openModalSocio()">+ Novo sócio</button>
+    </div>
+    ${rows}`;
+}
+
+// CONFIG
+function renderConfig() {
+  const grupos = GRUPOS.map(g => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:14px">${g.nome}</div>
+      <span class="badge ${g.tipo==='hospital'?'badge-hospital':'badge-direto'}">${g.tipo==='hospital'?'Com cálculo':'Valor direto'}</span>
+    </div>`).join('');
+
+  return `
+    <div class="section-header"><h2 class="section-title">Configurações</h2></div>
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="font-size:15px;font-weight:500;margin-bottom:10px">Percentual de desconto</h3>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px">
+        Aplicado a todos os sócios médicos dos grupos hospitalares. Desconto atual: <strong>${state.desconto}%</strong>
+      </p>
+      <div class="calc-preview" style="margin-bottom:16px">
+        <p>Exemplo com ${state.desconto}%:</p>
+        <p>Bruto: R$ 10.000,00</p>
+        <p>Desconto: −${fmtBRL(10000 * state.desconto / 100)}</p>
+        <p class="calc-total">Líquido: ${fmtBRL(10000 * (1 - state.desconto / 100))}</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModalConfig()">Alterar percentual</button>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px;font-weight:500;margin-bottom:12px">Grupos de pagamento</h3>
+      ${grupos}
+    </div>`;
+}
+
+// FILTROS
+function setFiltro(key, val) {
+  state[key] = val;
+  render();
+}
+
+// MODAL LANÇAMENTO
+function openModalLanc(id) {
+  state.editLancId = id;
+  const m = document.getElementById('modal-lanc-title');
+  const btnSalvar = document.getElementById('btn-salvar-lanc');
+
+  // Preencher selects
+  const grupoSel = document.getElementById('form-grupo');
+  grupoSel.innerHTML = '<option value="">Selecione...</option>' +
+    GRUPOS.map(g => `<option value="${g.id}">${g.nome}</option>`).join('');
+
+  const mesSel = document.getElementById('form-mes');
+  mesSel.innerHTML = MESES.map(m => `<option value="${m}">${fmtMes(m)}</option>`).join('');
+
+  if (id) {
+    const l = state.lancamentos.find(x => x.id === id);
+    m.textContent = 'Editar lançamento';
+    btnSalvar.textContent = 'Salvar alterações';
+    grupoSel.value = l.grupoId;
+    mesSel.value = l.mes;
+    document.getElementById('form-bruto').value = l.valorBruto;
+    document.getElementById('form-obs').value = l.obs;
+    onGrupoChange();
+    if (l.socioId) document.getElementById('form-socio').value = l.socioId;
+  } else {
+    m.textContent = 'Novo lançamento';
+    btnSalvar.textContent = 'Lançar';
+    grupoSel.value = '';
+    mesSel.value = '2026-05';
+    document.getElementById('form-bruto').value = '';
+    document.getElementById('form-obs').value = '';
+    document.getElementById('form-socio-group').style.display = 'none';
+    document.getElementById('calc-preview').style.display = 'none';
+  }
+  openModal('modal-lanc');
+}
+
+function onGrupoChange() {
+  const grupoId = document.getElementById('form-grupo').value;
+  const socioGroup = document.getElementById('form-socio-group');
+  const socioSel = document.getElementById('form-socio');
+
+  if (isHospital(grupoId)) {
+    socioGroup.style.display = 'block';
+    const filtSocios = state.socios.filter(s => s.grupos.includes(grupoId));
+    socioSel.innerHTML = '<option value="">Selecione...</option>' +
+      filtSocios.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+  } else {
+    socioGroup.style.display = 'none';
+  }
+  updateCalcPreview();
+}
+
+function updateCalcPreview() {
+  const grupoId = document.getElementById('form-grupo').value;
+  const bruto = parseFloat(document.getElementById('form-bruto').value) || 0;
+  const preview = document.getElementById('calc-preview');
+
+  if (!grupoId || !bruto) { preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+
+  if (isHospital(grupoId)) {
+    const desc = bruto * state.desconto / 100;
+    const liq = bruto - desc;
+    preview.innerHTML = `
+      <p>Bruto: ${fmtBRL(bruto)}</p>
+      <p>Desconto ${state.desconto}%: −${fmtBRL(desc)}</p>
+      <p class="calc-total">Líquido a pagar: ${fmtBRL(liq)}</p>`;
+  } else {
+    preview.innerHTML = `<p class="calc-total">Valor a pagar: ${fmtBRL(bruto)}</p>`;
+  }
+}
+
+function salvarLancamento() {
+  const grupoId = document.getElementById('form-grupo').value;
+  const mes     = document.getElementById('form-mes').value;
+  const brutoRaw= document.getElementById('form-bruto').value;
+  const obs     = document.getElementById('form-obs').value;
+  const socioId = document.getElementById('form-socio').value;
+
+  if (!grupoId || !mes || !brutoRaw) { alert('Preencha os campos obrigatórios.'); return; }
+  const bruto = parseFloat(brutoRaw.replace(',','.'));
+  if (isNaN(bruto) || bruto <= 0) { alert('Valor bruto inválido.'); return; }
+
+  if (state.editLancId) {
+    state.lancamentos = state.lancamentos.map(l => l.id === state.editLancId
+      ? { ...l, socioId: socioId ? parseInt(socioId) : null, grupoId, mes, valorBruto: bruto, obs }
+      : l);
+  } else {
+    const novoId = Math.max(...state.lancamentos.map(l => l.id), 0) + 1;
+    state.lancamentos.push({ id: novoId, socioId: socioId ? parseInt(socioId) : null, grupoId, mes, valorBruto: bruto, status: 'pendente', comprovante: null, dataPagamento: null, obs });
+  }
+  closeModal('modal-lanc');
+  render();
+}
+
+// CONFIRMAR
+function openConfirm(id) {
+  state.confirmLancId = id;
+  const l = state.lancamentos.find(x => x.id === id);
+  const hosp = isHospital(l.grupoId);
+  const liq = calcLiquido(l.valorBruto, l.grupoId);
+  const nome = hosp && l.socioId ? socioNome(l.socioId) : (l.obs || grupoNome(l.grupoId));
+  const descInfo = hosp
+    ? `<p>Bruto: ${fmtBRL(l.valorBruto)}</p>
+       <p>Desconto ${state.desconto}%: −${fmtBRL(l.valorBruto * state.desconto / 100)}</p>`
+    : '';
+  document.getElementById('confirm-info').innerHTML = `
+    <p style="font-weight:500;font-size:14px;margin-bottom:4px">${nome}</p>
+    <p style="color:var(--text2);margin-bottom:8px">${grupoNome(l.grupoId)} · ${fmtMes(l.mes)}</p>
+    ${descInfo}
+    <p class="calc-total">Valor a pagar: ${fmtBRL(liq)}</p>`;
+  document.getElementById('confirm-file').value = '';
+  document.getElementById('confirm-data-recebimento').value = '';
+  openModal('modal-confirm');
+}
+
+function confirmarPagamento() {
+  const fileEl = document.getElementById('confirm-file');
+  const arquivo = fileEl.files[0] ? fileEl.files[0].name : null;
+  const dataRecebimento = document.getElementById('confirm-data-recebimento').value || null;
+  state.lancamentos = state.lancamentos.map(l => l.id === state.confirmLancId
+    ? { ...l, status: 'pago', dataPagamento: hoje(), comprovante: arquivo, dataRecebimento }
+    : l);
+  closeModal('modal-confirm');
+  render();
+}
+
+// SÓCIO
+function openModalSocio() {
+  document.getElementById('form-socio-nome').value = '';
+  const checksEl = document.getElementById('socio-grupos-check');
+  checksEl.innerHTML = GRUPOS.filter(g => g.tipo === 'hospital').map(g => `
+    <label class="check-label">
+      <input type="checkbox" value="${g.id}"> ${g.nome}
+    </label>`).join('');
+  openModal('modal-socio');
+}
+
+function salvarSocio() {
+  const nome = document.getElementById('form-socio-nome').value.trim();
+  if (!nome) { alert('Informe o nome do sócio.'); return; }
+  const grupos = Array.from(document.querySelectorAll('#socio-grupos-check input:checked')).map(cb => cb.value);
+  const novoId = Math.max(...state.socios.map(s => s.id), 0) + 1;
+  state.socios.push({ id: novoId, nome, grupos });
+  closeModal('modal-socio');
+  render();
+}
+
+// CONFIG
+function openModalConfig() {
+  document.getElementById('form-desc-pct').value = state.desconto;
+  document.getElementById('config-preview').innerHTML = getConfigPreview(state.desconto);
+  document.getElementById('form-desc-pct').oninput = function() {
+    document.getElementById('config-preview').innerHTML = getConfigPreview(parseFloat(this.value) || 0);
+  };
+  openModal('modal-config');
+}
+function getConfigPreview(pct) {
+  return `<p>Exemplo com ${pct}%:</p>
+          <p>Bruto: R$ 10.000,00</p>
+          <p>Desconto: −${fmtBRL(10000 * pct / 100)}</p>
+          <p class="calc-total">Líquido: ${fmtBRL(10000 * (1 - pct / 100))}</p>`;
+}
+function salvarDesconto() {
+  const val = parseFloat(document.getElementById('form-desc-pct').value);
+  if (isNaN(val) || val < 0 || val > 100) { alert('Valor inválido.'); return; }
+  state.desconto = val;
+  closeModal('modal-config');
+  render();
+}
+
+// MODAL HELPERS
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
